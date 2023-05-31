@@ -12,7 +12,7 @@ class Person: Object {
     @objc dynamic var id: String = ""
     @objc dynamic var name: String = ""
     @objc dynamic var age: Int = 0
-    let pets = List<Pet>()
+    var pets = List<Pet>()
     
     override static func primaryKey() -> String? {
         return "id"

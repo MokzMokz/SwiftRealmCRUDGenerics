@@ -16,6 +16,10 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
+        // Delete all object
+        //realm.deleteAll(Person.self)
+        //realm.deleteAll(Pet.self)
+        
         // Create a Person object with relation with 2 pets
         let person = Person()
         person.id = "1"
@@ -37,20 +41,38 @@ class ViewController: UIViewController {
         
         // Access the pets of a person
         if let fetchPerson = realm.fetchForType(Person.self, withKey: "1", withRefresh: false) {
-            // create third Pet object for the person
-            let pet3 = Pet()
-            pet3.id = "3"
-            pet3.name = "Machie"
-            pet3.type = PetType.dog.rawValue
-            
-            realm.write(object: fetchPerson) { realmPerson in
-                realmPerson.pets.append(pet3)
-            }
-            
             for pet in fetchPerson.pets {
                 print("pet name: \(pet.name)") // Output: Moochie, Muffy, Machie
             }
         }
+        
+        
+        // Creating new pet
+        let pet3 = Pet()
+        pet3.id = "3"
+        pet3.name = "Machie"
+        pet3.type = PetType.dog.rawValue
+        
+        if let fetchPerson2 = realm.fetchForType(Person.self, withKey: "1", withRefresh: false) {
+            let existingPet = fetchPerson2.pets.filter("id == %@", pet3.id).first
+            if existingPet == nil {
+                realm.updateObject(fetchPerson2) {
+                    
+                    // Create a new pet object and add it to the database
+                    realm.create(pet3)
+                    // Append the pet object to the person's pets list
+                    fetchPerson2.pets.append(pet3)
+                }
+            }
+        }
+        
+        // Check the latest added Pet
+        if let fetchPerson3 = realm.fetchForType(Person.self, withKey: "1", withRefresh: true) {
+            for pet in fetchPerson3.pets {
+                print("pet name: \(pet.name)") // Output: Moochie, Muffy, Machie
+            }
+        }
+        
         
         // Access the owners of a pet
         if let fetchPet = realm.fetchForType(Pet.self, withKey: "2", withRefresh: false) {
@@ -67,8 +89,6 @@ class ViewController: UIViewController {
             }
             
             print("person name: \(fetchPerson2.name) age: \(fetchPerson2.age)")  // Output: Mark Davis Crisostomo, 23
-            
-            realm.delete(fetchPerson2)
         }
     }
 }

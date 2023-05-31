@@ -20,6 +20,7 @@ protocol RealmManagerSource: AnyObject {
     // MARK: - Update
     func updateObject<T: Object>(_ object: T, with updates: () -> Void)
     func delete<T: Object>(_ object: T)
+    func deleteAll<T: Object>(_ type: T.Type)
     
     func write<T: Object>(object: T, block: @escaping (T) -> Void)
 
@@ -53,6 +54,16 @@ class RealmManager: RealmManagerSource {
             logError(error)
         }
     }
+    
+    
+//    func processObjects<T: Object, U: Object>(object1: T, object2: U) {
+//        let realm = try! Realm()
+//
+//        try! realm.write {
+//            realm.add(object1)
+//            realm.add(object2)
+//        }
+//    }
     
     // MARK: - FETCH
     func fetch<T: Object>(_ object: T.Type, withRefresh refresh: Bool) -> Results<T> {
@@ -92,6 +103,20 @@ class RealmManager: RealmManagerSource {
         do {
             try realm.safeWrite {
                 realm.delete(object)
+            }
+        } catch {
+            logError(error)
+        }
+    }
+    
+    func deleteAll<T: Object>(_ type: T.Type) {
+        let realm = try! Realm()
+
+        let objectsToDelete = realm.objects(type)
+        
+        do {
+            try realm.safeWrite {
+                realm.delete(objectsToDelete)
             }
         } catch {
             logError(error)
